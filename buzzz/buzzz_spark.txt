@@ -1,0 +1,69 @@
+int motorPin = D0; // motor connected to digital pin D1 int analogPin = A0; // potentiometer connected to analog pin A0 int val = 0; // variable to store the read value
+int ledPin = A5; // the pin that the LED is attached to int brightness = 0; // how bright the LED is int fadeAmount = 3; // how many points to fade the LED by int vibration = 0;
+int globalValue = 0;
+void handleEmergenceEvent(const char *event, const char *data) { // turn on led int value = atoi(data); Serial.println(value);
+globalValue = value;
+}
+void setup() { Serial.begin(9600);
+//PUT YOUR SETUP CODE HERE
+pinMode(motorPin, OUTPUT);     // sets the pin as output
+
+pinMode(ledPin, OUTPUT);
+
+Spark.subscribe("emergence-event", handleEmergenceEvent);
+}
+void loop() { val = analogRead(analogPin); // read the input pin // analogWrite values from 0 to 255. //analogWrite(motorPin, val/16); // analogRead values go from 0 to 4095,
+Serial.print("GLOBAL: "); Serial.println(globalValue); Serial.print("LOCAL: "); Serial.println(val);
+if (globalValue > 500) {
+if (val>2500){
+    analogWrite(motorPin, 255);
+    analogWrite(ledPin, 255);
+    delay(90);
+    analogWrite(motorPin, 10);
+    analogWrite(ledPin, 0);
+    delay(90);
+    analogWrite(motorPin, 255);
+    analogWrite(ledPin, 255);
+    delay(90);
+
+}
+else {
+
+    // change the brightness for next time through the loop:
+    brightness = brightness + fadeAmount*5;
+    int r = random(0, 255);
+    analogWrite(ledPin, r); 
+    analogWrite(motorPin, 255);
+    delay(300);
+    analogWrite(ledPin, r); 
+    analogWrite(motorPin, 10);
+    delay(300);
+    analogWrite(ledPin, 0); 
+    analogWrite(motorPin, 255);
+    delay(300);
+}
+} else {
+  if (val>2500){
+    analogWrite(motorPin, 255);    
+    analogWrite(ledPin, brightness);    
+    // change the brightness for next time through the loop:
+    brightness = brightness + fadeAmount;
+    // reverse the direction of the fading at the ends of the fade: 
+    if (brightness == 0 || brightness == 255) {
+        fadeAmount = -fadeAmount ; 
+        }
+    delay(20);
+    }       
+  else {
+    analogWrite(motorPin, 80);    
+    analogWrite(ledPin, brightness);    
+    // change the brightness for next time through the loop:
+    brightness = brightness + fadeAmount;
+    // reverse the direction of the fading at the ends of the fade: 
+    if (brightness == 0 || brightness == 255) {
+        fadeAmount = -fadeAmount ; 
+    }
+    delay(60);
+    }
+}  
+}
